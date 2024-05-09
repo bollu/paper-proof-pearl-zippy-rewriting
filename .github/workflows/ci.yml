@@ -1,0 +1,34 @@
+name: build & test
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build and test code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+
+      - name: Install elan 🕑
+        run: |
+          set -o pipefail
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          ~/.elan/bin/lean --version
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+
+      - name: Compile Library 🧐
+        run: |
+          lake -R exe cache get # download cache of mathlib docs.
+          lake -R build Rewriter
+
+#     - name: Run executable ⚙️
+#       run: |
+#         ./build/bin/mlirnatural instcombine-test1 "32,2,3" | grep "^some -2$"
